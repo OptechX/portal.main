@@ -65,19 +65,28 @@ jobs:
     needs: [ "publish-docker-hub" ]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup SSH
-      # env:
-      #   gpg_pass: ${{ secrets.GPGKEY }}
-      run: |
-        chmod 700 ./secrets
-        chmod 400 ./secrets/user_host_rsa
-    - name: Auto-Deploy
-      env:
-        ssh_user: ${{ secrets.PORTAL_SSH_USER }}
-        ssh_url: ${{ secrets.PORTAL_SSH_URL }}
-      run: |
-        ssh -o "StrictHostKeyChecking=no" -i ./secrets/user_host_rsa "$ssh_user@$ssh_url" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal caddy_internal; docker rmi $(docker images -aq); docker compose up -d'
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🔑 Setup SSH
+        # env:
+        #   gpg_pass: ${{ secrets.GPGKEY }}
+        run: |
+          chmod 700 ./secrets
+          chmod 400 ./secrets/user_host_rsa
+
+      - name: Server Deploy
+        env:
+          ssh_user: ${{ secrets.PORTAL_SSH_USER }}
+          ssh_url: ${{ secrets.PORTAL_SSH_URL }}
+        run: |
+          ssh -o "StrictHostKeyChecking=no" -i ./secrets/user_host_rsa "$ssh_user@$ssh_url" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal caddy_internal; docker rmi $(docker images -aq); docker compose up -d'
 
   auto-pr:
     needs: [ "publish-docker-hub" ]
