@@ -1,0 +1,102 @@
+name: Development Branch
+
+on:
+  push:
+    branches: [ "dev" ]
+  schedule:
+    - cron: '0 4 * * 2'
+  workflow_dispatch:
+
+env:
+  DOCKER_BUILD_VERSION: "2.1"
+  DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
+
+jobs:
+  docker-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker .local Build
+        run: docker build --rm --no-cache --tag $DOCKER_IMAGE_NAME:$(date +%s) --file Dockerfile .
+
+  publish-docker-hub:
+    needs: [ "docker-test-build" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v3 
+        with:
+          token: ${{ secrets.GH_TOKEN_OPTECHX }}
+
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker Build
+        run: |
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION" --file Dockerfile .
+          docker tag "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION" "$DOCKER_IMAGE_NAME"
+
+      - name: 🚀🐳 Publish to Docker Hub
+        run: |
+          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
+          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION"
+          docker image push "$DOCKER_IMAGE_NAME"
+
+  server-deploy:
+    needs: [ "publish-docker-hub" ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup SSH
+      # env:
+      #   gpg_pass: ${{ secrets.GPGKEY }}
+      run: |
+        chmod 700 ./secrets
+        chmod 400 ./secrets/user_host_rsa
+    - name: Auto-Deploy
+      env:
+        ssh_user: ${{ secrets.PORTAL_SSH_USER }}
+        ssh_url: ${{ secrets.PORTAL_SSH_URL }}
+      run: |
+        ssh -o "StrictHostKeyChecking=no" -i ./secrets/user_host_rsa "$ssh_user@$ssh_url" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal caddy_internal; docker rmi $(docker images -aq); docker compose up -d'
+
+  auto-pr:
+    needs: [ "publish-docker-hub" ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: create pull request
+        run: gh pr create --base main --head dev --title 'Auto PR dev into main' --body 'Automatically created by gh-actions.' --label auto-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}
+  
+  auto-merge:
+    needs: [ "auto-pr" ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: merge pull request
+        run: gh pr merge --squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}
