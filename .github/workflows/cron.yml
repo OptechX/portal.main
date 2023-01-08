@@ -1,4 +1,4 @@
-name: Development Branch
+name: crontab
 
 on:
   schedule:
