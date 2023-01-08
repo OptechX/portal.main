@@ -34,3 +34,13 @@ do
     fi
   done
 done
+
+# encrypt ssh key
+skey="./secrets/user_host_rsa"
+if [ -f "$skey.gpg" ]; then
+  rm -f "$skey.gpg"
+fi
+gpg --passphrase="$LARGE_SECRET_PASSPHRASE" --pinentry-mode loopback --symmetric --cipher-algo AES256 "$skey"
+if [ -f "$skey.gpg" ]; then
+  rm -f "$skey"
+fi
