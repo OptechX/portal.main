@@ -1,0 +1,26 @@
+name: crontab
+
+on:
+  schedule:
+    - cron: '0 4 * * 2'
+  workflow_dispatch:
+
+env:
+  DOCKER_BUILD_VERSION: "2.1"
+  DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
+
+jobs:
+  docker-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker .local Build
+        run: docker build --rm --no-cache --tag $DOCKER_IMAGE_NAME:$(date +%s) --file Dockerfile .

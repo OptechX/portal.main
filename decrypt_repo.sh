@@ -11,11 +11,6 @@ do
   # output file
   g="${PWD}/${file%.gpg}"
 
-  # remove exising cs file if found
-  if [ -f "$g" ]; then
-    rm -rf "$g"
-  fi
-
   # decrypt the file
   gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --pinentry-mode loopback --output "$g" "$f"
 
