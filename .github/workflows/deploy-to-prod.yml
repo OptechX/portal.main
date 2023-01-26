@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_BUILD_VERSION: "2.1"
+  DOCKER_BUILD_VERSION: "2.2"
   DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
           SSH_USER: ${{ secrets.PORTAL_SSH_USER }}
           SSH_URL: ${{ secrets.PORTAL_SSH_URL }}
         run: |
-          ssh -o "StrictHostKeyChecking=no" -i ./secrets/user_host_rsa "$SSH_USER@$SSH_URL" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal internal; docker rmi $(docker images -aq); docker compose up -d'
+          ssh -o "StrictHostKeyChecking=no" -i ./secrets/user_host_rsa "$PORTAL_SSH_USER@$PORTAL_SSH_URL" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal internal; docker rmi $(docker images -aq); docker compose up -d'
 
       - name: 🗑️ Cleanup
         run: rm -rf ./secrets

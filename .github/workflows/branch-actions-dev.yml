@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_BUILD_VERSION: "2.1"
+  DOCKER_BUILD_VERSION: "2.2"
   DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
   DOCKER_NODE_VERSION: "1.0"
   DOCKER_NODE_IMAGE: "repasscloud/optechx.portal.node"
