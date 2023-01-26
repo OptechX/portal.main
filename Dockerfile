@@ -1,4 +1,5 @@
 FROM node:12.18.1-alpine AS builder
+ARG NG_CLI_ANALYTICS="false"
 COPY [ ".", "." ]
 WORKDIR /app
 RUN npm install ng-circle-progress@1.6.0 --save; \
