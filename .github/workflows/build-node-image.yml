@@ -26,9 +26,3 @@ jobs:
         run: |
           docker build --rm --no-cache --tag "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION" --file Dockerfile.node .
           docker tag "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION" "$DOCKER_NODE_IMAGE"
-
-      - name: 🚀🐳 Publish .node to Docker Hub
-        run: |
-          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
-          docker image push "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION"
-          docker image push "$DOCKER_NODE_IMAGE"
