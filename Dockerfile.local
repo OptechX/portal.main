@@ -11,7 +11,7 @@ RUN apt -y update; \
 
 FROM repasscloud/optechx.portal.node AS builder
 ARG NG_CLI_ANALYTICS="false"
-COPY [ "app", "." ]
+COPY [ ".", "." ]
 WORKDIR /app
 RUN npm run ng build
 
