@@ -1,7 +1,8 @@
 FROM node:12.18.1-alpine AS builder
 COPY [ ".", "." ]
 WORKDIR /app
-RUN npm install --no-optional --cache /tmp/empty-cache; \
+RUN npm install ng-circle-progress@1.6.0 --save; \
+  npm install --no-optional --cache /tmp/empty-cache; \
   npm run ng build
 
 FROM repasscloud/ubuntu-20.04:apache AS apachectl
