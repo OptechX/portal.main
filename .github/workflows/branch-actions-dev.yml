@@ -10,6 +10,8 @@ on:
 env:
   DOCKER_BUILD_VERSION: "2.1"
   DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
+  DOCKER_NODE_VERSION: "1.0"
+  DOCKER_NODE_IMAGE: "repasscloud/optechx.portal.node"
 
 jobs:
   docker-test-build:
@@ -23,6 +25,17 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
         shell: bash
+      
+      - name: 🐳🏗️ Docker .node Build
+        run: |
+          docker build --rm --no-cache --tag "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION" --file Dockerfile.node .
+          docker tag "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION" "$DOCKER_NODE_IMAGE"
+
+      - name: 🚀🐳 Publish .node to Docker Hub
+        run: |
+          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
+          docker image push "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION"
+          docker image push "$DOCKER_NODE_IMAGE"
 
       - name: 🐳🏗️ Docker .local Build
         run: docker build --rm --no-cache --tag $DOCKER_IMAGE_NAME:$(date +%s) --file Dockerfile.local .

@@ -9,11 +9,12 @@ RUN apt -y update; \
   service apache2 restart; \
   service apache2 stop;
 
-FROM repasscloud/optechx.portal.node AS builder
+FROM node:12.18.1-alpine AS builder
 ARG NG_CLI_ANALYTICS="false"
-COPY [ "app", "." ]
+COPY [ ".", "." ]
 WORKDIR /app
-RUN npm run ng build
+RUN npm install --no-optional --cache /tmp/empty-cache --save; \
+  npm run ng build
 
 FROM base AS final
 COPY --from=builder /app/dist /var/www/html
