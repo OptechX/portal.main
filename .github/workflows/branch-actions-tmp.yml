@@ -2,10 +2,7 @@ name: Development Branch
 
 on:
   push:
-    branches: [ "dev" ]
-  schedule:
-    - cron: '0 3 * * 3'
-  workflow_dispatch:
+    branches: [ "issue-20-tracker" ]
 
 env:
   DOCKER_BUILD_VERSION: "2.3a"
@@ -81,25 +78,3 @@ jobs:
           echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION"
           docker image push "$DOCKER_IMAGE_NAME"
-
-  auto-pr:
-    needs: [ "docker-test-build" ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: create pull request
-        run: gh pr create --base main --head dev --title 'Auto PR dev into main' --body 'Automatically created by gh-actions.' --label auto-pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}
-  
-  auto-merge:
-    needs: [ "auto-pr" ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: merge pull request
-        run: |
-          sleep 15
-          gh pr merge --squash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}
