@@ -1,4 +1,6 @@
 FROM node:12.18.1-alpine AS builder
 ARG NG_CLI_ANALYTICS="false"
+WORKDIR /app
 COPY [ "lib/package.json", "app/package.json" ]
-RUN npm install --prefix ./app --no-optional --cache /tmp/empty-cache --save
+RUN npm install --no-optional --cache /tmp/emtpy-cache --save
+# RUN npm install --prefix ./app --no-optional --cache /tmp/empty-cache --save

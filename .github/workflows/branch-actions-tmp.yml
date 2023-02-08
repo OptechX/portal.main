@@ -1,13 +1,13 @@
-name: Development Branch
+name: issue-20-tracker
 
 on:
   push:
     branches: [ "issue-20-tracker" ]
 
 env:
-  DOCKER_BUILD_VERSION: "2.3a"
-  DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
-  DOCKER_NODE_VERSION: "1.0"
+  DOCKER_BUILD_VERSION: "2.4"
+  DOCKER_BUILD_NAME: "repasscloud/optechx.portal"
+  DOCKER_NODE_VERSION: "1.1"
   DOCKER_NODE_IMAGE: "repasscloud/optechx.portal.node"
 
 jobs:
@@ -29,19 +29,10 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
         shell: bash
       
-      - name: 🐳🏗️ Docker .node Build
+      - name: 🐳🏗️ Docker 📗 Nginx Build
         run: |
-          docker build --rm --no-cache --tag "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION" --file Dockerfile.node .
-          docker tag "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION" "$DOCKER_NODE_IMAGE"
-
-      - name: 🚀🐳 Publish .node to Docker Hub
-        run: |
-          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
-          docker image push "$DOCKER_NODE_IMAGE:$DOCKER_NODE_VERSION"
-          docker image push "$DOCKER_NODE_IMAGE"
-
-      - name: 🐳🏗️ Docker .local Build
-        run: docker build --rm --no-cache --tag $DOCKER_IMAGE_NAME:$(date +%s) --file Dockerfile.local .
+          docker build --rm --no-cache --tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" --file Dockerfile.nginx .
+          docker tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" "$DOCKER_BUILD_NAME"
 
   publish-docker-hub:
     needs: [ "docker-test-build" ]
@@ -68,13 +59,13 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
         shell: bash
 
-      - name: 🐳🏗️ Docker Build
+      - name: 🐳🏗️ Docker 📗 Nginx Build
         run: |
-          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION" --file Dockerfile .
-          docker tag "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION" "$DOCKER_IMAGE_NAME"
+          docker build --rm --no-cache --tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" --file Dockerfile.nginx .
+          docker tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" "$DOCKER_BUILD_NAME"
 
-      - name: 🚀🐳 Publish to Docker Hub
+      - name: 🚀🐳 Publish 📗 Nginx to Docker Hub
         run: |
           echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
-          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_BUILD_VERSION"
-          docker image push "$DOCKER_IMAGE_NAME"
+          docker image push "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION"
+          docker image push "$DOCKER_BUILD_NAME"
