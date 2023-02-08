@@ -11,21 +11,11 @@ WORKDIR /app
 COPY [ "app", "." ]
 RUN npm run ng build
 
-
-# Use the official Nginx image as the base image
 FROM nginx:1.23.3 AS final
-
-# Copy the Nginx configuration file to the default Nginx configuration directory
-COPY [ "nginx/nginx.conf", "nginx/nginx.conf" ]
-
-# Copy the HTML files to the desired directory
+COPY [ "nginx/nginx.conf", "/nginx/nginx.conf" ]
 COPY --from=builder [ "/app/dist", "/usr/share/nginx/html" ]
-
-# Copy the http error 50x page
 COPY [ "nginx/50x.html", "/usr/share/nginx/html/50x.html" ]
-
-# Set the working directory to the default Nginx directory
 WORKDIR /etc/nginx
 
-# Run Nginx as the main command when the container starts
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

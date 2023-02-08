@@ -1,14 +1,3 @@
-FROM ubuntu:20.04 AS httpd
-ARG DEBIAN_FRONTEND=noninteractive
-RUN apt -y update; \
-  apt-get install -y --no-install-recommends tzdata; \
-  apt -y update; \
-  apt -y install apache2; \
-  apt clean; \
-  a2enmod rewrite; \
-  service apache2 restart; \
-  service apache2 stop;
-
 FROM node:12.18.1-alpine AS base
 ARG NG_CLI_ANALYTICS="false"
 WORKDIR /app
@@ -21,7 +10,7 @@ WORKDIR /app
 COPY [ "app", "." ]
 RUN npm run ng build
 
-FROM httpd AS final
+FROM repasscloud/ubuntu-20.04:apache AS apachectl
 COPY --from=builder /app/dist /var/www/html
 COPY [ "var/www/html/.htaccess", "/var/www/html/.htaccess" ]
 COPY [ "etc/apache2/apache2.conf", "/etc/apache2/apache2.conf" ]
