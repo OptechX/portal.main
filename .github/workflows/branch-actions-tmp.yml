@@ -31,6 +31,7 @@ jobs:
       
       - name: 🐳🏗️ Docker 📗 Nginx Build
         run: |
+          echo "Building Docker Image -> $DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION"
           docker build --rm --no-cache --tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" --file Dockerfile.nginx .
           docker tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" "$DOCKER_BUILD_NAME"
 
@@ -61,11 +62,13 @@ jobs:
 
       - name: 🐳🏗️ Docker 📗 Nginx Build
         run: |
+          echo "Building Docker Image -> $DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION"
           docker build --rm --no-cache --tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" --file Dockerfile.nginx .
           docker tag "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION" "$DOCKER_BUILD_NAME"
 
       - name: 🚀🐳 Publish 📗 Nginx to Docker Hub
         run: |
+          echo "Publishing Docker Image -> $DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION"
           echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
           docker image push "$DOCKER_BUILD_NAME:$DOCKER_BUILD_VERSION"
           docker image push "$DOCKER_BUILD_NAME"
