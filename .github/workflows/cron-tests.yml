@@ -6,11 +6,10 @@ on:
     - cron: '0 4 * * 1,3,5'
 
 env:
-  DOCKER_BUILD_VERSION: "2.2"
   DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
 
 jobs:
-  docker-full-test-build:
+  cron-local-build:
     runs-on: ubuntu-latest
     steps:
       - name: 🛒 Checkout
