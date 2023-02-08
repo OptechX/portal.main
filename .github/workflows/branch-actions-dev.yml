@@ -1,0 +1,203 @@
+name: Development Branch
+
+on:
+  push:
+    branches: [ "dev" ]
+  schedule:
+    - cron: '0 3 * * 3'
+  workflow_dispatch:
+
+env:
+  DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
+  DOCKER_IMAGE_VERSION: "2.4"
+  NGINX_BUILD: "-nginx"
+  HTTPD_BUILD: "-httpd"
+  LOCAL_BUILD: "-local"
+  NODE_BUILD: "-node-builder"
+
+jobs:
+  decrypt-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+
+  node-build:
+    needs: [ "decrypt-test" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+      
+      - name: 🐳🏗️ Docker Node Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD" --file Dockerfile.node .
+
+
+  local-build:
+    needs: [ "decrypt-test" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker Local Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$LOCAL_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$LOCAL_BUILD" --file Dockerfile.local .
+
+
+  httpd-build:
+    needs: [ "decrypt-test" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker Apache Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD" --file Dockerfile.www-apache .
+
+
+  nginx-build:
+    needs: [ "decrypt-test" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker 📗 Nginx Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" --file Dockerfile.www-nginx .
+      
+
+  publish-docker-hub:
+    needs: [ "nginx-build" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v3 
+        with:
+          token: ${{ secrets.GH_TOKEN_OPTECHX }}
+
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: 🔐 Decrypt Repo
+        run: ./decrypt_repo.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
+        shell: bash
+
+      - name: 🐳🏗️ Docker 📗 Node Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD" --file Dockerfile.node .
+
+      - name: 🐳🏗️ Docker 📗 Apache Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD" --file Dockerfile.www-apache .
+
+      - name: 🐳🏗️ Docker 📗 Nginx Build
+        run: |
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" --file Dockerfile.www-nginx .
+          docker tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" "$DOCKER_IMAGE_NAME"
+
+      - name: 🚀🐳 Publish to Docker Hub
+        run: |
+          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
+          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
+          docker image push "$DOCKER_IMAGE_NAME"
+          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD"
+          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
+
+
+  auto-pr:
+    needs: [ "nginx-build", "httpd-build", "local-build", "node-build" ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: create pull request
+        run: gh pr create --base main --head dev --title 'Auto PR dev into main' --body 'Automatically created by gh-actions.' --label auto-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}
+  
+
+  auto-merge:
+    needs: [ "publish-docker-hub", "auto-pr" ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: merge pull request
+        run: |
+          sleep 15
+          gh pr merge --squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}

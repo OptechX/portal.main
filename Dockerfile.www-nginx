@@ -1,0 +1,21 @@
+FROM node:12.18.1-alpine AS base
+ARG NG_CLI_ANALYTICS="false"
+WORKDIR /app
+COPY [ "lib/package.json", "." ]
+RUN npm install --no-optional --cache /tmp/emtpy-cache --save
+# RUN npm install --prefix ./app --no-optional --cache /tmp/empty-cache --save
+
+FROM base AS builder
+ARG NG_CLI_ANALYTICS="false"
+WORKDIR /app
+COPY [ "app", "." ]
+RUN npm run ng build
+
+FROM nginx:1.23.3 AS final
+COPY [ "nginx/nginx.conf", "/nginx/nginx.conf" ]
+COPY --from=builder [ "/app/dist", "/usr/share/nginx/html" ]
+COPY [ "nginx/50x.html", "/usr/share/nginx/html/50x.html" ]
+WORKDIR /etc/nginx
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
