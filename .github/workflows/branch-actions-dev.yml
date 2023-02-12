@@ -130,7 +130,7 @@ jobs:
       
 
   publish-docker-hub:
-    needs: [ "nginx-build" ]
+    needs: [ "nginx-build","apache-build" ]
     runs-on: ubuntu-latest
     steps:
       - name: Generate build number
@@ -156,23 +156,20 @@ jobs:
 
       - name: 🐳🏗️ Docker 📗 Node Build
         run: |
-          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
           docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD" --file Dockerfile.node .
 
       - name: 🐳🏗️ Docker 📗 Apache Build
         run: |
-          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
           docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD" --file Dockerfile.www-apache .
 
       - name: 🐳🏗️ Docker 📗 Nginx Build
         run: |
-          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
           docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" --file Dockerfile.www-nginx .
           docker tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" "$DOCKER_IMAGE_NAME"
 
       - name: 🚀🐳 Publish to Docker Hub
         run: |
-          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
+          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}" >> $GITHUB_OUTPUT
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
           docker image push "$DOCKER_IMAGE_NAME"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
