@@ -11,7 +11,7 @@ env:
   DOCKER_IMAGE_NAME: "repasscloud/optechx.portal"
   DOCKER_IMAGE_VERSION: "2.4"
   NGINX_BUILD: "-nginx"
-  HTTPD_BUILD: "-httpd"
+  APACHE_BUILD: "-apache"
   LOCAL_BUILD: "-local"
   NODE_BUILD: "-node-builder"
 
@@ -79,7 +79,7 @@ jobs:
           docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$LOCAL_BUILD" --file Dockerfile.local .
 
 
-  httpd-build:
+  apache-build:
     needs: [ "decrypt-test" ]
     runs-on: ubuntu-latest
     steps:
@@ -100,8 +100,8 @@ jobs:
 
       - name: 🐳🏗️ Docker Apache Build
         run: |
-          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD"
-          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD" --file Dockerfile.www-apache .
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD" --file Dockerfile.www-apache .
 
 
   nginx-build:
@@ -161,8 +161,8 @@ jobs:
 
       - name: 🐳🏗️ Docker 📗 Apache Build
         run: |
-          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD"
-          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD" --file Dockerfile.www-apache .
+          echo "Building -> $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD" --file Dockerfile.www-apache .
 
       - name: 🐳🏗️ Docker 📗 Nginx Build
         run: |
@@ -175,12 +175,12 @@ jobs:
           echo "Build number: ${{ steps.buildnumber.outputs.build_number }}"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
           docker image push "$DOCKER_IMAGE_NAME"
-          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$HTTPD_BUILD"
+          docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
 
 
   auto-pr:
-    needs: [ "nginx-build", "httpd-build", "local-build", "node-build" ]
+    needs: [ "nginx-build", "apache-build", "local-build", "node-build" ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
