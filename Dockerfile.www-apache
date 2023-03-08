@@ -1,13 +1,13 @@
 FROM node:12.18.1-alpine AS base
 ARG NG_CLI_ANALYTICS="false"
 WORKDIR /app
-COPY [ "lib/package.json", "." ]
+COPY [ "./lib/package.json", "." ]
 RUN npm install --no-optional --cache /tmp/emtpy-cache --save
 
 FROM base AS builder
 ARG NG_CLI_ANALYTICS="false"
 WORKDIR /app
-COPY [ "app", "." ]
+COPY [ "./app", "." ]
 RUN npm run ng build
 
 FROM repasscloud/ubuntu-20.04:apache AS apachectl
