@@ -173,7 +173,7 @@ jobs:
 
       - name: 🚀🐳 Publish to Docker Hub
         run: |
-          echo "Build number: ${{ steps.buildnumber.outputs.build_number }}" >> $GITHUB_OUTPUT
+          #echo "Build number: ${{ steps.buildnumber.outputs.build_number }}" >> $GITHUB_OUTPUT
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
           # docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
           # docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
