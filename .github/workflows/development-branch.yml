@@ -199,6 +199,6 @@ jobs:
       - name: merge pull request
         run: |
           sleep 15
-          gh pr merge
+          gh pr merge --merge
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN_OPTECHX }}
