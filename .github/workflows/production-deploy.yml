@@ -16,24 +16,33 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
         shell: bash
 
-      - name: 🔑 Create SSH Key
-        run: |
-          echo $SSH_KEY >> ./secrets/user_host_rsa
-        shell: bash
-        env:
-          SSH_KEY: ${{ secrets.PORTAL_SSH_KEY }}
+      # - name: 🔑 Create SSH Key
+      #   run: |
+      #     echo $SSH_KEY >> ./secrets/user_host_rsa
+      #   shell: bash
+      #   env:
+      #     SSH_KEY: ${{ secrets.PORTAL_SSH_KEY }}
 
-      - name: 🔑 Setup SSH Permissions
-        run: |
-          chmod 700 ./secrets
-          chmod 400 ./secrets/user_host_rsa
+      # - name: 🔑 Setup SSH Permissions
+      #   run: |
+      #     chmod 700 ./secrets
+      #     chmod 400 ./secrets/user_host_rsa
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-actions@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+      
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H ${{ secrerts.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: 🖥️ Deploy to PROD Environment
         env:
           SSH_USER: ${{ secrets.PORTAL_SSH_USER }}
           SSH_URL: ${{ secrets.PORTAL_SSH_URL }}
         run: |
-          ssh -o "StrictHostKeyChecking=no" -i ./secrets/user_host_rsa "admin-rpc@portal.optechx.com" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal internal; docker rmi $(docker images -aq) --force; docker compose up -d'
+          ssh -o "StrictHostKeyChecking=no" "$SSH_USER@$SSH_URL" 'docker compose down; docker network prune --force; docker network create web; docker network create --internal internal; docker rmi $(docker images -aq) --force; docker compose up -d'
 
       - name: 🗑️ Cleanup
         run: rm -rf ./secrets
