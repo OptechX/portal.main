@@ -16,7 +16,14 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PHRASE }}
         shell: bash
 
-      - name: 🔑 Setup SSH
+      - name: 🔑 Create SSH Key
+        run: |
+          echo $SSH_KEY >> ./secrets/user_host_rsa
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.PORTAL_SSH_KEY }}
+
+      - name: 🔑 Setup SSH Permissions
         run: |
           chmod 700 ./secrets
           chmod 400 ./secrets/user_host_rsa
