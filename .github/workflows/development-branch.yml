@@ -166,6 +166,10 @@ jobs:
         run: |
           docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" --file Dockerfile.www-nginx .
           docker tag "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD" "$DOCKER_IMAGE_NAME"
+      
+      - name: 🐳🏗️ Docker 📗 Standard Build
+        run: |
+          docker build --rm --no-cache --tag "$DOCKER_IMAGE_NAME" --file Dockerfile.www-nginx .
 
       - name: 🚀🐳 Publish to Docker Hub
         run: |
@@ -173,7 +177,7 @@ jobs:
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
-
+          docker image push "$DOCKER_IMAGE_NAME"
 
   auto-pr:
     needs: [ "nginx-build", "apache-build", "local-build", "node-build" ]
