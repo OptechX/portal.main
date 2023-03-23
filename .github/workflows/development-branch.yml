@@ -3,8 +3,6 @@ name: Development Branch
 on:
   push:
     branches: [ "dev" ]
-  schedule:
-    - cron: '0 3 * * 3'
   workflow_dispatch:
 
 env:
@@ -177,7 +175,7 @@ jobs:
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NGINX_BUILD"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$APACHE_BUILD"
           docker image push "$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_VERSION$NODE_BUILD"
-          # docker image push "$DOCKER_IMAGE_NAME"
+          docker image push "$DOCKER_IMAGE_NAME"
 
 
   auto-pr:
